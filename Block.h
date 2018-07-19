@@ -2,11 +2,11 @@
 
 #include "Grafphics.h"
 
-//ƒs[ƒX‚Ìc‰¡‚Ìƒ}ƒX”
+//Piece Size
 #define PIECE_WIDTH 4
 #define PIECE_HEIGHT 4
 
-//ƒtƒB[ƒ‹ƒh‚Ìc‰¡‚Ìƒ}ƒX”
+//Field Size
 #define FIELD_WIDTH 14
 #define FIELD_HEIGHT 24
 
@@ -53,6 +53,6 @@ public:
 
 protected:
 	
-	POINT _point;	//ƒuƒƒbƒN‚ÌÀ•W
+	POINT _point;	//ï¿½uï¿½ï¿½ï¿½bï¿½Nï¿½Ìï¿½ï¿½W
 	BlockGraphic _graphic;	
 };
