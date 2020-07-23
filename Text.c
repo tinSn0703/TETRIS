@@ -1,48 +1,48 @@
 #include<windows.h>
 #include<time.h>
 
-// winmm.lib ‚ðƒŠƒ“ƒN‚·‚é
+// winmm.lib ã‚’ãƒªãƒ³ã‚¯ã™ã‚‹
 #pragma comment(lib,"winmm")
 
-// ƒGƒ‰[
+// ã‚¨ãƒ©ãƒ¼
 #define ERR -1
 
-// ƒs[ƒX‚Ì‰¡‚Æc‚Ìƒ}ƒX”
+// ãƒ”ãƒ¼ã‚¹ã®æ¨ªã¨ç¸¦ã®ãƒžã‚¹æ•°
 #define PIECE_WIDTH		4
 #define PIECE_HEIGHT	4
 
-/* ƒtƒB[ƒ‹ƒh‚Ì‰¡‚Æc‚Ìƒ}ƒX” */
+/* ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®æ¨ªã¨ç¸¦ã®ãƒžã‚¹æ•° */
 #define FIELD_WIDTH		14
 #define FIELD_HEIGHT	24
 
-// ƒ}ƒX‚ÌƒsƒNƒZƒ‹”
+// ãƒžã‚¹ã®ãƒ”ã‚¯ã‚»ãƒ«æ•°
 #define CELL_WIDTH		20
 #define CELL_HEIGHT		20
 
-/* MovePiece ŠÖ”‚Ìˆø” */
+/* MovePiece é–¢æ•°ã®å¼•æ•° */
 #define PIECE_LEFT		2
 #define PIECE_RIGHT		4
 #define PIECE_DOWN		8
 
-BYTE field[FIELD_WIDTH][FIELD_HEIGHT]={0};		/* ƒQ[ƒ€ƒtƒB[ƒ‹ƒh */
-DWORD fColor[FIELD_WIDTH][FIELD_HEIGHT]={0};	// ƒQ[ƒ€ƒtƒB[ƒ‹ƒh‚ÌF
+BYTE field[FIELD_WIDTH][FIELD_HEIGHT]={0};		/* ã‚²ãƒ¼ãƒ ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ */
+DWORD fColor[FIELD_WIDTH][FIELD_HEIGHT]={0};	// ã‚²ãƒ¼ãƒ ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®è‰²
 
-BYTE piece[PIECE_WIDTH][PIECE_HEIGHT]={0};		/* Œ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN */
-DWORD pColor[PIECE_WIDTH][PIECE_HEIGHT]={0};	// Œ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN‚ÌF
-POINT location={0,0};							/* Œ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN‚ÌˆÊ’u */
+BYTE piece[PIECE_WIDTH][PIECE_HEIGHT]={0};		/* ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯ */
+DWORD pColor[PIECE_WIDTH][PIECE_HEIGHT]={0};	// ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯ã®è‰²
+POINT location={0,0};							/* ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯ã®ä½ç½® */
 
-BYTE next[PIECE_WIDTH][PIECE_HEIGHT]={0};		// ŽŸ‚ÌƒuƒƒbƒN
-DWORD nColor[PIECE_WIDTH][PIECE_HEIGHT]={0};	// ŽŸ‚ÌƒuƒƒbƒN‚ÌF
+BYTE next[PIECE_WIDTH][PIECE_HEIGHT]={0};		// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯
+DWORD nColor[PIECE_WIDTH][PIECE_HEIGHT]={0};	// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯ã®è‰²
 
-DWORD score=0;			// Šl“¾“_”
-DWORD playTime=0;		// ƒvƒŒƒCŽžŠÔ
-BOOL GameOver=FALSE;	// TRUE ‚Æ‚È‚é‚Ì‚ÍƒQ[ƒ€ƒI[ƒo[‚©‚çƒŠƒvƒŒƒC‚·‚é‚Ü‚Å
+DWORD score=0;			// ç²å¾—ç‚¹æ•°
+DWORD playTime=0;		// ãƒ—ãƒ¬ã‚¤æ™‚é–“
+BOOL GameOver=FALSE;	// TRUE ã¨ãªã‚‹ã®ã¯ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼ã‹ã‚‰ãƒªãƒ—ãƒ¬ã‚¤ã™ã‚‹ã¾ã§
 
-#define MUTEX_NAME	"MutexObject of SPACE TETRIS"	// ƒ~ƒ…[ƒeƒbƒNƒXƒIƒuƒWƒFƒNƒg‚Ì–¼‘O
+#define MUTEX_NAME	"MutexObject of SPACE TETRIS"	// ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®åå‰
 
-#define WM_MUTEX	WM_APP		// ƒƒCƒ“ƒXƒŒƒbƒh‚Éƒ~ƒ…[ƒeƒbƒNƒX‚ÌŠ—LŒ Žæ“¾‚ð—v‹‚·‚éƒƒbƒZ[ƒW
+#define WM_MUTEX	WM_APP		// ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã«ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã®æ‰€æœ‰æ¨©å–å¾—ã‚’è¦æ±‚ã™ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 
-/* piece[][] “à‚ÌƒuƒƒbƒN‚ÌÅã•”‚ÌˆÊ’u‚ð•Ô‚· */
+/* piece[][] å†…ã®ãƒ–ãƒ­ãƒƒã‚¯ã®æœ€ä¸Šéƒ¨ã®ä½ç½®ã‚’è¿”ã™ */
 int GetPieceTop(void)
 {
 	for(int y=0;y<PIECE_HEIGHT;y++){
@@ -55,7 +55,7 @@ int GetPieceTop(void)
 	return ERR;
 }
 
-/* piece[][]@“à‚ÌƒuƒƒbƒN‚ÌÅ‰º•”‚ÌˆÊ’u‚ð•Ô‚· */
+/* piece[][]ã€€å†…ã®ãƒ–ãƒ­ãƒƒã‚¯ã®æœ€ä¸‹éƒ¨ã®ä½ç½®ã‚’è¿”ã™ */
 int GetPieceBottom(void)
 {
 	for(int y=PIECE_HEIGHT-1;y>=0;y--){
@@ -68,7 +68,7 @@ int GetPieceBottom(void)
 	return ERR;
 }
 
-/* piece[][]@“à‚ÌƒuƒƒbƒN‚Ì¶‘¤‚ÌˆÊ’u‚ð•Ô‚· */
+/* piece[][]ã€€å†…ã®ãƒ–ãƒ­ãƒƒã‚¯ã®å·¦å´ã®ä½ç½®ã‚’è¿”ã™ */
 int GetPieceLeft(void)
 {
 	for(int x=0;x<PIECE_WIDTH;x++){
@@ -81,7 +81,7 @@ int GetPieceLeft(void)
 	return ERR;
 }
 
-/* piece[][]@“à‚ÌƒuƒƒbƒN‚Ì‰E‘¤‚ÌˆÊ’u‚ð•Ô‚· */
+/* piece[][]ã€€å†…ã®ãƒ–ãƒ­ãƒƒã‚¯ã®å³å´ã®ä½ç½®ã‚’è¿”ã™ */
 int GetPieceRight(void)
 {
 	for(int x=PIECE_WIDTH-1;x>=0;x--){
@@ -94,9 +94,9 @@ int GetPieceRight(void)
 	return ERR;
 }
 
-/* ƒuƒƒbƒN‚ÌˆÚ“®”»’è */
-// –ß‚è’lFTURE(ˆÚ“®‚µ‚½) or FALSE(ˆÚ“®•s‰Â)
-BOOL MovePiece(int move)	// moveFˆÚ“®‚µ‚½‚¢•ûŒü
+/* ãƒ–ãƒ­ãƒƒã‚¯ã®ç§»å‹•åˆ¤å®š */
+// æˆ»ã‚Šå€¤ï¼šTURE(ç§»å‹•ã—ãŸ) or FALSE(ç§»å‹•ä¸å¯)
+BOOL MovePiece(int move)	// moveï¼šç§»å‹•ã—ãŸã„æ–¹å‘
 {
 	int x,y,left,right,bottom;
 	switch(move){
@@ -105,10 +105,10 @@ BOOL MovePiece(int move)	// moveFˆÚ“®‚µ‚½‚¢•ûŒü
 
 			if((location.x)+left <= 0) return FALSE;
 
-			for(y=0;y<PIECE_HEIGHT;y++){		// «(location.x)+x-1>=0 , (location.y)+y>=0
-				for(x=0;x<PIECE_WIDTH;x++){		// ‚Í“YŽš‚Ì—LŒø«‚ð’²‚×‚Ä‚¢‚é
+			for(y=0;y<PIECE_HEIGHT;y++){		// â†“(location.x)+x-1>=0 , (location.y)+y>=0
+				for(x=0;x<PIECE_WIDTH;x++){		// ã¯æ·»å­—ã®æœ‰åŠ¹æ€§ã‚’èª¿ã¹ã¦ã„ã‚‹
 					if(piece[x][y] && (location.x)+x-1>=0 && (location.y)+y>=0
-						&& field[(location.x)+x-1][(location.y)+y]){	// ˆê‚Â¶‚ÉƒuƒƒbƒN‚ª‚ ‚é
+						&& field[(location.x)+x-1][(location.y)+y]){	// ä¸€ã¤å·¦ã«ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹
                             return FALSE;
 					}
 				}
@@ -120,10 +120,10 @@ BOOL MovePiece(int move)	// moveFˆÚ“®‚µ‚½‚¢•ûŒü
 
 			if((location.x)+right >= FIELD_WIDTH-1) return FALSE;
 
-			for(y=0;y<PIECE_HEIGHT;y++){		// «(location.x)+x+1<FIELD_WIDTH , (location.y)+y>=0
-				for(x=0;x<PIECE_WIDTH;x++){		// ‚Í“YŽš‚Ì—LŒø«‚ð’²‚×‚Ä‚¢‚é
+			for(y=0;y<PIECE_HEIGHT;y++){		// â†“(location.x)+x+1<FIELD_WIDTH , (location.y)+y>=0
+				for(x=0;x<PIECE_WIDTH;x++){		// ã¯æ·»å­—ã®æœ‰åŠ¹æ€§ã‚’èª¿ã¹ã¦ã„ã‚‹
 					if(piece[x][y] && (location.x)+x+1<FIELD_WIDTH && (location.y)+y>=0
-						&& field[(location.x)+x+1][(location.y)+y]){	// ˆê‚Â‰E‚ÉƒuƒƒbƒN‚ª‚ ‚é
+						&& field[(location.x)+x+1][(location.y)+y]){	// ä¸€ã¤å³ã«ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹
                             return FALSE;
 					}
 				}
@@ -135,10 +135,10 @@ BOOL MovePiece(int move)	// moveFˆÚ“®‚µ‚½‚¢•ûŒü
 
 			if((location.y)+bottom >= FIELD_HEIGHT-1) return FALSE;
 
-			for(y=0;y<PIECE_HEIGHT;y++){		// «(location.y)+y+1>=0 , (location.y)+y+1<FIELD_HEIGHT
-				for(x=0;x<PIECE_WIDTH;x++){		// ‚Í“YŽš‚Ì—LŒø«‚ð’²‚×‚Ä‚¢‚é
+			for(y=0;y<PIECE_HEIGHT;y++){		// â†“(location.y)+y+1>=0 , (location.y)+y+1<FIELD_HEIGHT
+				for(x=0;x<PIECE_WIDTH;x++){		// ã¯æ·»å­—ã®æœ‰åŠ¹æ€§ã‚’èª¿ã¹ã¦ã„ã‚‹
 					if(piece[x][y] && (location.y)+y+1>=0 && (location.y)+y+1<FIELD_HEIGHT
-						&& field[(location.x)+x][(location.y)+y+1]){	// ˆê‚Â‰º‚ÉƒuƒƒbƒN‚ª‚ ‚é
+						&& field[(location.x)+x][(location.y)+y+1]){	// ä¸€ã¤ä¸‹ã«ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹
                             return FALSE;
 					}
 				}
@@ -149,30 +149,30 @@ BOOL MovePiece(int move)	// moveFˆÚ“®‚µ‚½‚¢•ûŒü
 	return FALSE;
 }
 
-/* ƒuƒƒbƒN‚ð‰ñ“]‚³‚¹‚é */
-// –ß‚è’lFTURE(‰ñ“]‚µ‚½) or FALSE(‰ñ“]•s‰Â)
+/* ãƒ–ãƒ­ãƒƒã‚¯ã‚’å›žè»¢ã•ã›ã‚‹ */
+// æˆ»ã‚Šå€¤ï¼šTURE(å›žè»¢ã—ãŸ) or FALSE(å›žè»¢ä¸å¯)
 BOOL TurnPiece(void)
 {
 	int x,y,offsetX,offsetY;
 	BYTE pTurn[PIECE_WIDTH][PIECE_HEIGHT];
 	DWORD pcTurn[PIECE_WIDTH][PIECE_HEIGHT];
 
-	/* ‰ñ“]‚µ‚½ƒuƒƒbƒN‚ð¶¬‚·‚é */
+	/* å›žè»¢ã—ãŸãƒ–ãƒ­ãƒƒã‚¯ã‚’ç”Ÿæˆã™ã‚‹ */
 	for(y=0;y<PIECE_HEIGHT;y++){
 		for(x=0;x<PIECE_WIDTH;x++){
 			pTurn[(PIECE_HEIGHT-1)-y][x]=piece[x][y];
 			pcTurn[(PIECE_HEIGHT-1)-y][x]=pColor[x][y];
 		}
 	}
-	/* ‰ñ“]‰Â”\‚©‚Ç‚¤‚©‚ð’²‚×‚é */
+	/* å›žè»¢å¯èƒ½ã‹ã©ã†ã‹ã‚’èª¿ã¹ã‚‹ */
 	for(y=0;y<PIECE_HEIGHT;y++){
 		for(x=0;x<PIECE_WIDTH;x++){
 			if(pTurn[x][y]){
 				offsetX=(location.x)+x;
 				offsetY=(location.y)+y;
 				if(offsetX<0 || offsetX>=FIELD_WIDTH
-					|| offsetY>=FIELD_HEIGHT	// «offsetY>=0 ‚Í“YŽš‚Ì—LŒø«‚ð’²‚×‚Ä‚¢‚é
-					|| (offsetY>=0 && field[offsetX][offsetY])){	//Šù‚ÉƒuƒƒbƒN‚ª‚ ‚é
+					|| offsetY>=FIELD_HEIGHT	// â†“offsetY>=0 ã¯æ·»å­—ã®æœ‰åŠ¹æ€§ã‚’èª¿ã¹ã¦ã„ã‚‹
+					|| (offsetY>=0 && field[offsetX][offsetY])){	//æ—¢ã«ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹
                         return FALSE;
 					}
 			}
@@ -187,8 +187,8 @@ BOOL TurnPiece(void)
 	return TRUE;
 }
 
-/* Šes‚ð’²‚×As‚ª–„‚Ü‚Á‚Ä‚¢‚éê‡‚Ís‚ðíœ‚·‚é */
-// –ß‚è’lFíœ‚µ‚½s”
+/* å„è¡Œã‚’èª¿ã¹ã€è¡ŒãŒåŸ‹ã¾ã£ã¦ã„ã‚‹å ´åˆã¯è¡Œã‚’å‰Šé™¤ã™ã‚‹ */
+// æˆ»ã‚Šå€¤ï¼šå‰Šé™¤ã—ãŸè¡Œæ•°
 int DeleteLine(void)
 {
 	int x,y,delCount=0;
@@ -198,10 +198,10 @@ int DeleteLine(void)
 			lineCount+=field[x][y];
 		}
 
-		if(lineCount==0) break;		/* ‚±‚ê‚æ‚èã‚ÉƒuƒƒbƒN‚Í‚È‚¢ */
+		if(lineCount==0) break;		/* ã“ã‚Œã‚ˆã‚Šä¸Šã«ãƒ–ãƒ­ãƒƒã‚¯ã¯ãªã„ */
 		if(lineCount!=FIELD_WIDTH) continue;
 
-		/* ˆêsíœ‚·‚é */
+		/* ä¸€è¡Œå‰Šé™¤ã™ã‚‹ */
 		delCount++;
 		for(x=0;x<FIELD_WIDTH;x++){
 			field[x][y]=0;
@@ -210,8 +210,8 @@ int DeleteLine(void)
 	return delCount;
 }
 
-// íœ‚µ‚½s‚ð‹l‚ß‚é
-void ShiftLine(int delCount)	// delCountFíœ‚µ‚½s”
+// å‰Šé™¤ã—ãŸè¡Œã‚’è©°ã‚ã‚‹
+void ShiftLine(int delCount)	// delCountï¼šå‰Šé™¤ã—ãŸè¡Œæ•°
 {
 	int x,y;
 	for(y=FIELD_HEIGHT-1;y>=0 && delCount>0; ){
@@ -225,7 +225,7 @@ void ShiftLine(int delCount)	// delCountFíœ‚µ‚½s”
 			continue;
 		}
 
-		// ˆês‹l‚ß‚é
+		// ä¸€è¡Œè©°ã‚ã‚‹
 		delCount--;
 		for(int iy=y;iy>=0;iy--){
 			for(x=0;x<FIELD_WIDTH;x++){
@@ -233,7 +233,7 @@ void ShiftLine(int delCount)	// delCountFíœ‚µ‚½s”
 					field[x][iy]=field[x][iy-1];
 					fColor[x][iy]=fColor[x][iy-1];
 				}else{
-					field[x][0]=0;		/* 0 s‚æ‚èã‚Í‚È‚¢‚Ì‚Å 0 ‚Å–„‚ß‚é */
+					field[x][0]=0;		/* 0 è¡Œã‚ˆã‚Šä¸Šã¯ãªã„ã®ã§ 0 ã§åŸ‹ã‚ã‚‹ */
 					fColor[x][0]=0;
 				}
 			}
@@ -241,7 +241,7 @@ void ShiftLine(int delCount)	// delCountFíœ‚µ‚½s”
 	}
 }
 
-// ŽŸ‚ÌƒuƒƒbƒN‚ð‚ ‚ç‚©‚¶‚ßì‚Á‚Ä‚¨‚­
+// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯ã‚’ã‚ã‚‰ã‹ã˜ã‚ä½œã£ã¦ãŠã
 void CreatePiece(void)
 {
 	for(int y=0;y<PIECE_HEIGHT;y++){
@@ -282,8 +282,8 @@ void CreatePiece(void)
 	}
 }
 
-/* ŽŸ‚ÌƒuƒƒbƒN‚Ö */
-void NextPiece(BOOL first)		// firstFƒQ[ƒ€ŠJŽn‚©‚çÅ‰‚ÌŒÄ‚Ño‚µ‚©”Û‚©
+/* æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯ã¸ */
+void NextPiece(BOOL first)		// firstï¼šã‚²ãƒ¼ãƒ é–‹å§‹ã‹ã‚‰æœ€åˆã®å‘¼ã³å‡ºã—ã‹å¦ã‹
 {
 	if(first) CreatePiece();
 
@@ -299,11 +299,11 @@ void NextPiece(BOOL first)		// firstFƒQ[ƒ€ŠJŽn‚©‚çÅ‰‚ÌŒÄ‚Ño‚µ‚©”Û‚©
 	CreatePiece();
 }
 
-/* ƒuƒƒbƒN‚ðˆÊ’uî•ñ‚É]‚Á‚ÄƒtƒB[ƒ‹ƒh‚ÉƒRƒs[‚·‚é */
+/* ãƒ–ãƒ­ãƒƒã‚¯ã‚’ä½ç½®æƒ…å ±ã«å¾“ã£ã¦ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã«ã‚³ãƒ”ãƒ¼ã™ã‚‹ */
 void PieceToField(void)
 {
 	for(int y=0;y<PIECE_HEIGHT;y++){
-		for(int x=0;x<PIECE_WIDTH;x++){		// «(location.y)+y>=0 ‚Í“YŽš‚Ì—LŒø«‚ð’²‚×‚Ä‚¢‚é
+		for(int x=0;x<PIECE_WIDTH;x++){		// â†“(location.y)+y>=0 ã¯æ·»å­—ã®æœ‰åŠ¹æ€§ã‚’èª¿ã¹ã¦ã„ã‚‹
 			if(piece[x][y] && (location.y)+y>=0){
 				field[(location.x)+x][(location.y)+y]=piece[x][y];
 				fColor[(location.x)+x][(location.y)+y]=pColor[x][y];
@@ -312,8 +312,8 @@ void PieceToField(void)
 	}
 }
 
-// “®ì§ŒäƒXƒŒƒbƒh
-DWORD WINAPI ThreadProc(LPVOID lpParameter)		// lpParameterFƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
+// å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰
+DWORD WINAPI ThreadProc(LPVOID lpParameter)		// lpParameterï¼šã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«
 {
 	HWND hWnd=(HWND)lpParameter;
 	HANDLE hMutex=OpenMutex(MUTEX_ALL_ACCESS,FALSE,MUTEX_NAME);
@@ -323,19 +323,19 @@ DWORD WINAPI ThreadProc(LPVOID lpParameter)		// lpParameterFƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ
 	DWORD progress,signal=1;
 	int x,y,line;
 
-	while(1){								// «ƒƒCƒ“ƒXƒŒƒbƒh‚©‚ç‚Ì‰î“ü‚ª‚È‚¢ŒÀ‚è
-		progress=timeGetTime()-beforeTime;	// ƒ^ƒCƒ€ƒAƒEƒg‚É‚æ‚Á‚Ä‘Ò‹@‚ð‰ðœ‚·‚é
+	while(1){								// â†“ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰ã®ä»‹å…¥ãŒãªã„é™ã‚Š
+		progress=timeGetTime()-beforeTime;	// ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã«ã‚ˆã£ã¦å¾…æ©Ÿã‚’è§£é™¤ã™ã‚‹
 		if(progress<sleep) signal=WaitForSingleObject(hMutex,sleep-progress);
-		progress=timeGetTime()-beforeTime;	// ©ƒƒCƒ“ƒXƒŒƒbƒh‚©‚ç‚Ì‰î“ü‚É‚æ‚è
-		playTime+=progress;					// ƒ^ƒCƒ€ƒAƒEƒg‚ð‘Ò‚Â‚±‚Æ‚È‚­‘Ò‹@‚ð‰ðœ‚µ‚½‰Â”\«‚ðl—¶
+		progress=timeGetTime()-beforeTime;	// â†ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰ã®ä»‹å…¥ã«ã‚ˆã‚Š
+		playTime+=progress;					// ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã‚’å¾…ã¤ã“ã¨ãªãå¾…æ©Ÿã‚’è§£é™¤ã—ãŸå¯èƒ½æ€§ã‚’è€ƒæ…®
 		minute+=progress;
 		if(minute>=60*1000 && sleep>100){
-			sleep-=100;		// ˆê•ª‚²‚Æ‚É‘Ò‹@ŽžŠÔ‚ðŒ¸‚ç‚µ‚Ä‚ä‚­
+			sleep-=100;		// ä¸€åˆ†ã”ã¨ã«å¾…æ©Ÿæ™‚é–“ã‚’æ¸›ã‚‰ã—ã¦ã‚†ã
 			minute=0;
 		}
 		beforeTime=timeGetTime();
 
-		if(!MovePiece(PIECE_DOWN)){		// Œ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN‚ª‰º’i‚É’B‚µ‚½‚ç«
+		if(!MovePiece(PIECE_DOWN)){		// ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯ãŒä¸‹æ®µã«é”ã—ãŸã‚‰â†“
 			PieceToField();
 			line=DeleteLine();
 			if(line>0){
@@ -350,35 +350,35 @@ DWORD WINAPI ThreadProc(LPVOID lpParameter)		// lpParameterFƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ
 				Sleep(500);
 				ShiftLine(line);
 			}
-			if(field[6][0] || field[7][0]){		/* ƒQ[ƒ€I—¹ */
+			if(field[6][0] || field[7][0]){		/* ã‚²ãƒ¼ãƒ çµ‚äº† */
 				GameOver=TRUE;
-				ReleaseMutex(hMutex);	// ƒ~ƒ…[ƒeƒbƒNƒX‚ÌŠ—LŒ ‚ð‰ð•ú
-				CloseHandle(hMutex);	// ‘S‚Ä‚Ìƒnƒ“ƒhƒ‹‚ð•Â‚¶‚È‚¢ŒÀ‚èƒ~ƒ…[ƒeƒbƒNƒX‚Í”jŠü‚³‚ê‚È‚¢
-				MessageBox(hWnd,"‚±‚ÌƒƒbƒZ[ƒWƒ{ƒbƒNƒX‚ð•Â‚¶‚½Œã‚É\n"
-					"    EnterƒL[‚ð‰Ÿ‚¹‚ÎccV‚µ‚¢ƒQ[ƒ€‚ªŽn‚Ü‚è‚Ü‚·\n"
-					"    ~ƒ{ƒ^ƒ“‚ð‰Ÿ‚¹‚ÎccI—¹‚µ‚Ü‚·","GAME OVER",MB_OK);
-				return 0;		// ƒQ[ƒ€I—¹‚ÅƒXƒŒƒbƒh‚Í”jŠü‚·‚é
+				ReleaseMutex(hMutex);	// ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã®æ‰€æœ‰æ¨©ã‚’è§£æ”¾
+				CloseHandle(hMutex);	// å…¨ã¦ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’é–‰ã˜ãªã„é™ã‚ŠãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã¯ç ´æ£„ã•ã‚Œãªã„
+				MessageBox(hWnd,"ã“ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒœãƒƒã‚¯ã‚¹ã‚’é–‰ã˜ãŸå¾Œã«\n"
+					"    Enterã‚­ãƒ¼ã‚’æŠ¼ã›ã°â€¦â€¦æ–°ã—ã„ã‚²ãƒ¼ãƒ ãŒå§‹ã¾ã‚Šã¾ã™\n"
+					"    Ã—ãƒœã‚¿ãƒ³ã‚’æŠ¼ã›ã°â€¦â€¦çµ‚äº†ã—ã¾ã™","GAME OVER",MB_OK);
+				return 0;		// ã‚²ãƒ¼ãƒ çµ‚äº†ã§ã‚¹ãƒ¬ãƒƒãƒ‰ã¯ç ´æ£„ã™ã‚‹
 			}
 			NextPiece(FALSE);
 		}
 		InvalidateRect(hWnd,NULL,FALSE);
 
-		if(signal==WAIT_OBJECT_0){				// ƒƒCƒ“ƒXƒŒƒbƒh‚©‚ç‚Ì‰î“ü‚É‚æ‚è‘Ò‹@‚ð‰ðœ‚µ‚½
-			ReleaseMutex(hMutex);				// ƒ~ƒ…[ƒeƒbƒNƒX‚ÌŠ—LŒ ‚ð‰ð•ú
-			SendMessage(hWnd,WM_MUTEX,0,0);		// ƒƒCƒ“ƒXƒŒƒbƒh‚Éƒ~ƒ…[ƒeƒbƒNƒX‚ÌŠ—LŒ Žæ“¾‚ð—v‹
+		if(signal==WAIT_OBJECT_0){				// ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰ã®ä»‹å…¥ã«ã‚ˆã‚Šå¾…æ©Ÿã‚’è§£é™¤ã—ãŸ
+			ReleaseMutex(hMutex);				// ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã®æ‰€æœ‰æ¨©ã‚’è§£æ”¾
+			SendMessage(hWnd,WM_MUTEX,0,0);		// ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã«ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã®æ‰€æœ‰æ¨©å–å¾—ã‚’è¦æ±‚
 		}
 	}
 	return 0;
 }
 
-// •`‰æ‚·‚é
-void Paint(HDC hdc)		// hdcFƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒnƒ“ƒhƒ‹
+// æç”»ã™ã‚‹
+void Paint(HDC hdc)		// hdcï¼šãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
 {
 	int x,y,ptx,pty;
 	HBRUSH hBrush,hOldBrush;
 
 	SelectObject(hdc,GetStockObject(NULL_PEN));
-	for(y=0;y<FIELD_HEIGHT;y++){		// ƒQ[ƒ€ƒtƒB[ƒ‹ƒh‚ÌƒuƒƒbƒN
+	for(y=0;y<FIELD_HEIGHT;y++){		// ã‚²ãƒ¼ãƒ ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®ãƒ–ãƒ­ãƒƒã‚¯
 		for(x=0;x<FIELD_WIDTH;x++){
 			ptx=(x+1)*CELL_WIDTH;
 			pty=(y+1)*CELL_HEIGHT;
@@ -391,8 +391,8 @@ void Paint(HDC hdc)		// hdcFƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒnƒ“ƒhƒ‹
 			}
 		}
 	}
-	for(y=0;y<PIECE_HEIGHT;y++){			// Œ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN
-		if((location.y)+y < 0) continue;	// ƒQ[ƒ€ƒtƒB[ƒ‹ƒh‚Ì˜g‚æ‚èã‚Í•`‚©‚È‚¢
+	for(y=0;y<PIECE_HEIGHT;y++){			// ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯
+		if((location.y)+y < 0) continue;	// ã‚²ãƒ¼ãƒ ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®æž ã‚ˆã‚Šä¸Šã¯æã‹ãªã„
 		for(x=0;x<PIECE_WIDTH;x++){
 			ptx=((location.x)+x+1)*CELL_WIDTH;
 			pty=((location.y)+y+1)*CELL_HEIGHT;
@@ -405,7 +405,7 @@ void Paint(HDC hdc)		// hdcFƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒnƒ“ƒhƒ‹
 			}
 		}
 	}
-	for(y=0;y<PIECE_HEIGHT;y++){		// ŽŸ‚ÌƒuƒƒbƒN
+	for(y=0;y<PIECE_HEIGHT;y++){		// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯
 		for(x=0;x<PIECE_WIDTH;x++){
 			ptx=(FIELD_WIDTH+2+x)*CELL_WIDTH;
 			pty=(y+1)*CELL_HEIGHT;
@@ -420,29 +420,29 @@ void Paint(HDC hdc)		// hdcFƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚Ìƒnƒ“ƒhƒ‹
 	}
 	SelectObject(hdc,GetStockObject(WHITE_PEN));
 	SelectObject(hdc,GetStockObject(NULL_BRUSH));
-	Rectangle(hdc,CELL_WIDTH,CELL_HEIGHT,					// ƒQ[ƒ€ƒtƒB[ƒ‹ƒh‚Ì˜g
+	Rectangle(hdc,CELL_WIDTH,CELL_HEIGHT,					// ã‚²ãƒ¼ãƒ ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®æž 
 		(FIELD_WIDTH+1)*CELL_WIDTH,(FIELD_HEIGHT+1)*CELL_HEIGHT);
-	Rectangle(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,CELL_HEIGHT,	// ŽŸ‚ÌƒuƒƒbƒN‚Ì˜g
+	Rectangle(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,CELL_HEIGHT,	// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯ã®æž 
 		(FIELD_WIDTH+2+PIECE_WIDTH)*CELL_WIDTH,(PIECE_HEIGHT+1)*CELL_HEIGHT);
 
 	char buf[32];
 	SetTextColor(hdc,RGB(255,255,255));
 	SetBkMode(hdc,TRANSPARENT);
-	// Šl“¾“_”
+	// ç²å¾—ç‚¹æ•°
 	wsprintf(buf,"SCORE");
 	TextOut(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,(PIECE_HEIGHT+2)*CELL_HEIGHT,buf,(int)strlen(buf));
 	wsprintf(buf,"%d",score);
 	TextOut(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,(PIECE_HEIGHT+3)*CELL_HEIGHT,buf,(int)strlen(buf));
-	// ƒvƒŒƒCŽžŠÔ
+	// ãƒ—ãƒ¬ã‚¤æ™‚é–“
 	wsprintf(buf,"PLAY TIME");
 	TextOut(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,(PIECE_HEIGHT+5)*CELL_HEIGHT,buf,(int)strlen(buf));
 	wsprintf(buf,"%02d:%02d:%03d",(playTime/1000)/60,(playTime/1000)%60,playTime%1000);
 	TextOut(hdc,(FIELD_WIDTH+2)*CELL_WIDTH,(PIECE_HEIGHT+6)*CELL_HEIGHT,buf,(int)strlen(buf));
 }
 
-// Ä‰Šú‰»‚·‚é
-// –ß‚è’lFV‚µ‚¢ƒXƒŒƒbƒh‚Ìƒnƒ“ƒhƒ‹
-HANDLE ReInitialize(HWND hWnd)		// hWndFƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
+// å†åˆæœŸåŒ–ã™ã‚‹
+// æˆ»ã‚Šå€¤ï¼šæ–°ã—ã„ã‚¹ãƒ¬ãƒƒãƒ‰ã®ãƒãƒ³ãƒ‰ãƒ«
+HANDLE ReInitialize(HWND hWnd)		// hWndï¼šã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«
 {
 	for(int y=0;y<FIELD_HEIGHT;y++){
 		for(int x=0;x<FIELD_WIDTH;x++){
@@ -455,8 +455,8 @@ HANDLE ReInitialize(HWND hWnd)		// hWndFƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
 	GameOver=FALSE;
 
 	DWORD dwID;			// piece[][] , pColor[][] , location , next[][] , nColor[][]
-	NextPiece(TRUE);	// ‚ª NextPiece() ‚Å‰Šú‰»‚³‚ê‚é
-	return CreateThread(NULL,0,ThreadProc,hWnd,0,&dwID);		// ƒQ[ƒ€I—¹Œã‚ÉƒXƒŒƒbƒh‚Í”jŠü‚³‚ê‚Ä‚¢‚é
+	NextPiece(TRUE);	// ãŒ NextPiece() ã§åˆæœŸåŒ–ã•ã‚Œã‚‹
+	return CreateThread(NULL,0,ThreadProc,hWnd,0,&dwID);		// ã‚²ãƒ¼ãƒ çµ‚äº†å¾Œã«ã‚¹ãƒ¬ãƒƒãƒ‰ã¯ç ´æ£„ã•ã‚Œã¦ã„ã‚‹
 }
 
 LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
@@ -468,16 +468,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 	HBITMAP hBitmap;
 	static BITMAP bitmap;
 	static HDC hBackDC,hMemDC;
-	static HANDLE hThread;		// “®ì§ŒäƒXƒŒƒbƒh‚Ìƒnƒ“ƒhƒ‹
-	static HANDLE hMutex;		// ƒ~ƒ…[ƒeƒbƒNƒXƒIƒuƒWƒFƒNƒg‚Ìƒnƒ“ƒhƒ‹
+	static HANDLE hThread;		// å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰ã®ãƒãƒ³ãƒ‰ãƒ«
+	static HANDLE hMutex;		// ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
 
 	switch(uMsg) {
 		case WM_CREATE:
-			// ”wŒi‰æ‘œ‚ðƒ[ƒh‚·‚é
+			// èƒŒæ™¯ç”»åƒã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 			hBitmap=(HBITMAP)LoadImage((HINSTANCE)GetWindowLong(hWnd,GWL_HINSTANCE),
 				"andromeda.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 			if(hBitmap==NULL){
-				MessageBox(hWnd,"ƒvƒƒOƒ‰ƒ€‚ðI—¹‚µ‚Ü‚·","”wŒi‰æ‘œ‚ª‚ ‚è‚Ü‚¹‚ñ",MB_OK);
+				MessageBox(hWnd,"ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‚’çµ‚äº†ã—ã¾ã™","èƒŒæ™¯ç”»åƒãŒã‚ã‚Šã¾ã›ã‚“",MB_OK);
 				SendMessage(hWnd,WM_DESTROY,0,0);
 				return 0;
 			}
@@ -487,7 +487,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			SelectObject(hBackDC,hBitmap);
 			DeleteObject(hBitmap);
 
-			// ƒƒ‚ƒŠƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚ðì‚é
+			// ãƒ¡ãƒ¢ãƒªãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œã‚‹
 			hBitmap=CreateCompatibleBitmap(hdc,bitmap.bmWidth,bitmap.bmHeight);
 			hMemDC=CreateCompatibleDC(hdc);
 			ReleaseDC(hWnd,hdc);
@@ -495,10 +495,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			DeleteObject(hBitmap);
 
 			srand((unsigned)time(NULL));
-			hMutex=CreateMutex(NULL,TRUE,MUTEX_NAME);	//Å‰‚ÌŠ—LŽÒ‚ÍƒƒCƒ“ƒXƒŒƒbƒh
+			hMutex=CreateMutex(NULL,TRUE,MUTEX_NAME);	//æœ€åˆã®æ‰€æœ‰è€…ã¯ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰
 
 			NextPiece(TRUE);
-			hThread=CreateThread(NULL,0,ThreadProc,hWnd,0,&dwID);	// ƒXƒŒƒbƒh‚ðì‚é
+			hThread=CreateThread(NULL,0,ThreadProc,hWnd,0,&dwID);	// ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ä½œã‚‹
 			return 0;
 		case WM_DESTROY:
 			DeleteDC(hBackDC);
@@ -508,8 +508,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			PostQuitMessage(0);
 			return 0;
 		case WM_MUTEX:
-			WaitForSingleObject(hMutex,INFINITE);	// ƒ~ƒ…[ƒeƒbƒNƒX‚ÌŠ—LŒ ‚ðŽæ“¾‚·‚é
-			return 0;								// (“®ì§ŒäƒXƒŒƒbƒh‚ð‘Ò‹@‚³‚¹‚é)
+			WaitForSingleObject(hMutex,INFINITE);	// ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ã®æ‰€æœ‰æ¨©ã‚’å–å¾—ã™ã‚‹
+			return 0;								// (å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’å¾…æ©Ÿã•ã›ã‚‹)
 		case WM_PAINT:
 			hdc=BeginPaint(hWnd,&ps);
 			BitBlt(hMemDC,0,0,bitmap.bmWidth,bitmap.bmHeight,hBackDC,0,0,SRCCOPY);
@@ -529,22 +529,22 @@ LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 				case VK_DOWN:
                     bl=MovePiece(PIECE_DOWN);
 					if(!bl) ReleaseMutex(hMutex);
-					break;	// ªŒ»ÝˆÚ“®’†‚ÌƒuƒƒbƒN‚ðŒÅ’è‚³‚¹‚éˆ×‚É“®ì§ŒäƒXƒŒƒbƒh‚Ì‘Ò‹@‰ðœ
+					break;	// â†‘ç¾åœ¨ç§»å‹•ä¸­ã®ãƒ–ãƒ­ãƒƒã‚¯ã‚’å›ºå®šã•ã›ã‚‹ç‚ºã«å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰ã®å¾…æ©Ÿè§£é™¤
 				case VK_SPACE:
 					bl=TurnPiece();
 					break;
-				case VK_ESCAPE:		// ˆêŽž’âŽ~
+				case VK_ESCAPE:		// ä¸€æ™‚åœæ­¢
 					SuspendThread(hThread);
 					beforeTime=timeGetTime();
-					MessageBox(hWnd,"ƒQ[ƒ€‚ðÄŠJ‚µ‚Ü‚·‚©H","ˆêŽž’âŽ~’†",MB_OK);
+					MessageBox(hWnd,"ã‚²ãƒ¼ãƒ ã‚’å†é–‹ã—ã¾ã™ã‹ï¼Ÿ","ä¸€æ™‚åœæ­¢ä¸­",MB_OK);
 					ResumeThread(hThread);
 					playTime-=(timeGetTime()-beforeTime);
 					break;
-				case VK_RETURN:		// ƒQ[ƒ€ƒI[ƒo[‚µ‚Ä‚¢‚ê‚ÎV‚µ‚¢ƒQ[ƒ€‚ðŽn‚ß‚é
+				case VK_RETURN:		// ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼ã—ã¦ã„ã‚Œã°æ–°ã—ã„ã‚²ãƒ¼ãƒ ã‚’å§‹ã‚ã‚‹
 					if(GameOver){
-						WaitForSingleObject(hMutex,INFINITE);	// V‚µ‚­ì‚é“®ì§ŒäƒXƒŒƒbƒh‚ð‘Ò‹@‚³‚¹‚é
-						CloseHandle(hThread);					// ƒnƒ“ƒhƒ‹‚ð•Â‚¶‚Ä‚àƒXƒŒƒbƒh‚ÍI—¹‚µ‚È‚¢
-						hThread=ReInitialize(hWnd);				// Ä‰Šú‰»(“®ì§ŒäƒXƒŒƒbƒh‚àV‚µ‚­ì‚é)
+						WaitForSingleObject(hMutex,INFINITE);	// æ–°ã—ãä½œã‚‹å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’å¾…æ©Ÿã•ã›ã‚‹
+						CloseHandle(hThread);					// ãƒãƒ³ãƒ‰ãƒ«ã‚’é–‰ã˜ã¦ã‚‚ã‚¹ãƒ¬ãƒƒãƒ‰ã¯çµ‚äº†ã—ãªã„
+						hThread=ReInitialize(hWnd);				// å†åˆæœŸåŒ–(å‹•ä½œåˆ¶å¾¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚‚æ–°ã—ãä½œã‚‹)
 					}
 					break;
 			}
@@ -573,7 +573,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,
 
 	if(!RegisterClass(&wc)) return 0;
 
-	// Žw’è‚µ‚½ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ðŠm•Û‚·‚é‚½‚ß‚É•K—v‚ÈƒEƒBƒ“ƒhƒEÀ•W‚ðŒvŽZ‚·‚é
+	// æŒ‡å®šã—ãŸã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé ˜åŸŸã‚’ç¢ºä¿ã™ã‚‹ãŸã‚ã«å¿…è¦ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦åº§æ¨™ã‚’è¨ˆç®—ã™ã‚‹
 	RECT rc={0,0,(FIELD_WIDTH+7)*CELL_WIDTH,(FIELD_HEIGHT+2)*CELL_HEIGHT};
 	AdjustWindowRect(&rc,WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME,FALSE);
 
